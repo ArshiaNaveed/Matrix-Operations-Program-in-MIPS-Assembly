@@ -1,0 +1,435 @@
+.data
+.align 2
+varword: .word main,c1,c2,c3,c4,c5
+array1: .space 16
+array2: .space 16
+result: .space 16
+minus: .float -1.0
+zero: .float 0.0
+welcome:.asciiz "-----------------------------------------------------Welcome to Matrix World----------------------------------------------------\n\nThe Matrix Operations available to perform are: \n"
+cases: .asciiz  "\t\t\t\t\t       1. Addition\n\t\t\t\t\t       2. Subtraction\n\t\t\t\t\t       3. Multiplication\n\t\t\t\t\t       4. Determinant\n\t\t\t\t\t       5. Inverse\n"
+msg: .asciiz "\nEnter the code of the Operation desired to perform : "
+again: .asciiz "\n\nDo you want to perform more operations?\nEnter (1) for 'YES' & (0) for 'NO': "
+addition:.asciiz "\nThe Result of the Addition of given Matrices is:\n"
+subtraction:.asciiz "\nThe Result of the Subtraction of given Matrices is:\n"
+multiplication:.asciiz "\nThe Result of the Multiplication of Matrices is:\n"
+determinant:.asciiz "\nThe Determinant of the given Matrix is: "
+inverse:.asciiz "\nThe Inverse of the given Matrix is:\n"
+not_invertible:.asciiz "\nDeterminant of Given Matrix is 0 Hence the Matrix is NOT Invertible"
+space: .asciiz "\t"
+newline: .asciiz  "\n"
+bye: .asciiz "----------------------------------------------------Thanks for Using Bye Bye----------------------------------------------------\n\n"
+arr1: .asciiz "\nEnter Values for Matrix 1: "
+arr2: .asciiz "\nEnter Values for Matrix 2: "
+arr3: .asciiz "\nEnter Values for the Matrix: "
+
+M00: .asciiz "\n\nEnter array[0,0]  =  "
+M01: .asciiz "Enter array[0,1]  =  "
+M10: .asciiz "Enter array[1,0]  =  "
+M11: .asciiz "Enter array[1,1]  =  "
+
+.text
+main:
+la $a0,welcome  		# printing welcome message
+li $v0,4     
+syscall
+la $a0,cases 			# printing choices
+li $v0,4     
+syscall
+
+correct:
+la $a0,msg    			# asking choices
+li $v0,4     
+syscall
+li $v0,5
+syscall
+blt $v0,1,correct    		# if the entered choice < 1 i.e., minimum then ask again
+bgt $v0,6,correct   		# if the entered choice > 6 i.e., maximum then ask again
+la $a1,varword			# switch case
+sll $t0,$v0,2
+add $t1,$a1,$t0
+lw $t2,0($t1)
+jr $t2
+
+c1:				# case 1: addition case
+addi $t7,$zero,1
+la $a0,arr1      		# printing arr1 message
+li $v0,4     
+syscall
+addi $t0,$zero,0		# for indexing 
+j input_array1 			# jump to function of taking input array 1 
+
+c2:				# case 2: subtraction case
+addi $t7,$zero,2
+la $a0,arr1      		# printing arr1 message
+li $v0,4     
+syscall
+addi $t0,$zero,0		# for indexing 
+j input_array1 			# jump to function of taking input array 1 
+
+c3:				# case 3: multiplication case
+li $t7,3			# set $t7 to 3 for case identification
+la $a0,arr1          		# print arr1 message
+li $v0,4     
+syscall
+addi $t0,$zero,0		# for indexing 
+j input_array1 			# jump to function of taking input for array 1 
+
+c4:				# case 4: determinant case
+addi $t7,$zero,4
+la $a0,arr3          		# print arr3 message
+li $v0,4     
+syscall
+addi $t0,$zero,0		# for indexing 
+j input_array1 			# jump to function of taking input array 
+
+c5:				# casse 5: inverse case
+addi $t7,$zero,5		# set $t7 to 5 for case identification
+la $a0,arr3          		# print arr3 message
+li $v0,4     
+syscall
+addi $t0,$zero,0		# for indexing 
+j input_array1 			# jump to function of taking input array
+
+input_array1 :
+la $a0, M00			# print message to take value for array location [0,0]
+li $v0, 4     
+syscall
+li $v0,6			# taking float / int value from user
+syscall
+mfc1 $v0,$f0			# moving input value to $f0 register
+swc1 $f0,array1($t0)  	 	# value at $f0 is stored at 0 location in array1
+addi $t0,$t0,4     		# increment 4 bytes to point to next array location
+la $a0,M01			# print message to take value for array location [0,1]
+li $v0,4     
+syscall
+li $v0,6			# taking float / int value from user
+syscall
+mfc1 $v0,$f0			# moving input value to $f0 register
+swc1 $f0,array1($t0)  		# value at $f0 is stored at 1 location in array1
+addi $t0,$t0,4
+la $a0,M10			# print message to take value for array location [1,0]
+li $v0,4     
+syscall
+li $v0,6			# taking float / int value from user
+syscall
+mfc1 $v0,$f0			# moving input value to $f0 register overwriting $f0
+swc1 $f0,array1($t0)  		# value at $f0 is stored at 2 location in array1
+addi $t0,$t0,4
+la $a0,M11			# print message to take value for array location [1,1]
+li $v0,4     
+syscall
+li $v0,6			# taking float / int value from user
+syscall
+mfc1 $v0,$f0			# moving input value to $f0 register overwriting $f0
+swc1 $f0,array1($t0) 		# value at $f0 is stored at 3 location in array1
+
+ble $t7,3,take_array2 		# take 2nd array if operation is add, sub or mul
+beq $t7,4,det
+beq $t7,5,cal_inverse
+jal take_array2			# jump to take 2nd array
+
+
+take_array2:
+la $a0,arr2      		# printing arr2 message
+li $v0,4     
+syscall
+addi $t0,$zero,0		# reset value to 0
+j input_array2 			# jump to function of taking input array 2
+
+input_array2:
+la $a0,M00			# print message to take value for array location [0,0]
+li $v0,4     
+syscall
+li $v0,6			# taking float / int value from user
+syscall
+mfc1 $v0,$f0			# moving input value to $f0 register
+swc1 $f0,array2($t0)   		# value at $f0 is stored at 0 location in array2
+addi $t0,$t0,4			# increment 4 bytes to point to next array location
+la $a0,M01			# print message to take value for array location [0,1]
+li $v0,4			
+syscall
+li $v0,6			# taking float / int value from user
+syscall
+mfc1 $v0,$f0			# moving input value to $f0 register
+swc1 $f0,array2($t0)		# value at $f0 is stored at 1 location in array2
+addi $t0,$t0,4			# increment 4 bytes to point to next array location
+la $a0,M10			# print message to take value for array location [1,0]
+li $v0,4     
+syscall
+li $v0,6			# taking float / int value from user
+syscall
+mfc1 $v0,$f0			# moving input value to $f0 register
+swc1 $f0,array2($t0)		# value at $f0 is stored at 2 location in array2
+addi $t0,$t0,4			# increment 4 bytes to point to next array location
+la $a0,M11			# print message to take value for array location [1,1]
+li $v0,4     
+syscall
+li $v0,6			# taking float / int value from user
+syscall
+mfc1 $v0,$f0			# moving input value to $f0 register
+swc1 $f0,array2($t0)		# value at $f0 is stored at 2 location in array2
+
+beq $t7,1,add_arr		# check which function to jump to for the operation to perform 
+beq $t7,2,sub_arr
+beq $t7,3,mul_arr
+j end				
+
+add_arr:
+la $a0,addition     		# printing addition message
+li $v0,4     
+syscall
+j add_arrays			# jump to function of adding both arrays
+
+sub_arr:
+la $a0,subtraction     		# printing subtraction message
+li $v0,4     
+syscall
+j sub_arrays			# jump to function of adding both arrays
+
+mul_arr:
+addi $t0,$zero,0		# reset value to 0
+la $a0,multiplication     	# print multiplication message
+li $v0,4     
+syscall
+j multiply_arrays		# jump to function of multiplying both arrays
+
+inverse_arr:
+l.s $f7,zero			#check if determinant is equal to zero
+c.eq.s $f7,$f31
+bc1t singular
+la $a0,inverse     		# print inverse message
+li $v0,4     
+syscall
+j invert_array
+
+add_arrays:
+li $t1,0			# index
+lwc1 $f0,array1($t1)		# load 1st value of array 1 in $f0
+lwc1 $f4,array2($t1)		# load 1st value of array 2 in $f4
+add.s $f8,$f0,$f4		# add 1st elements of both arrays and save them in $f8
+swc1 $f8,result($t1)		# store the result of addition of 1st elements at 0th location of added array
+addi $t1,$t1,4			# increment 4 bytes so ot will point to next array element now $t1 = 4
+lwc1 $f1,array1($t1)		# load 2nd value of array 1 in $f1
+lwc1 $f5,array2($t1)		# load 2nd value of array 2 in $f5
+add.s $f9,$f1,$f5		# store the result of addition of 2nd elements at oneth location of added array
+swc1 $f9,result($t1)		
+addi $t1,$t1,4
+lwc1 $f2,array1($t1)
+lwc1 $f6,array2($t1)
+add.s $f10,$f2,$f6
+swc1 $f10,result($t1)
+addi $t1,$t1,4
+lwc1 $f3,array1($t1)
+lwc1 $f7,array2($t1)
+add.s $f11,$f3,$f7
+swc1 $f11,result($t1)
+j display			# jump to display the resultant array
+
+sub_arrays:
+
+li $t1,0			# index
+lwc1 $f0,array1($t1)		# load 1st value of array 1 in $f0
+lwc1 $f4,array2($t1)		# load 1st value of array 2 in $f4
+sub.s $f8,$f0,$f4		# sub 1st elements of both arrays and save them in $f8
+swc1 $f8,result($t1)		# store the result of addition of 1st elements at 0th location of subtracted array
+addi $t1,$t1,4			# increment 4 bytes so ot will point to next array element now $t1 = 4
+lwc1 $f1,array1($t1)    	# load 2nd value of array 1 in $f1
+lwc1 $f5,array2($t1)		# load 2nd value of array 2 in $f5
+sub.s $f9,$f1,$f5		# store the result of subtracted of 2nd elements at oneth location of added array
+swc1 $f9,result($t1)	
+addi $t1,$t1,4
+lwc1 $f2,array1($t1)
+lwc1 $f6,array2($t1)
+sub.s $f10,$f2,$f6
+swc1 $f10,result($t1)
+addi $t1,$t1,4
+lwc1 $f3,array1($t1)
+lwc1 $f7,array2($t1)
+sub.s $f11,$f3,$f7
+swc1 $f11,result($t1)
+j display			# jump to display the resultant array
+
+multiply_arrays:
+
+#For the 1st location of the multiplied array
+li $t1,0			# set $t1 to 0 for 1st value
+lwc1 $f0,array1($t1)		# load 4th value of array 1 in $f0
+lwc1 $f1,array2($t1)		# load 1st value of array 2 in $f1
+mul.s $f2,$f0,$f1		# multiply 1st elements of both arrays and save them in $f2
+li $t1,4			# set $t1 to 4 for 2nd value
+lwc1 $f3,array1($t1)		# load 2nd value of array 1 in $f3
+li $t1,8			# set $t1 to 8 for 3rd value
+lwc1 $f4,array2($t1)		# load 3rd value of array 2 in $f4
+mul.s $f5,$f3,$f4		# multiply 1st elements of both arrays and save them in $f5
+add.s $f6,$f2,$f5		# add the result of both multipllications and save them in $f6
+li $t1,0			# set $t1 to 0 for 1st value
+swc1 $f6,result($t1)		# store the result of the final addition at 1st location of multiplied array
+#For the 2nd location of the multiplied array
+li $t1,0			# set $t1 to 0 for 1st value
+lwc1 $f0,array1($t1)		# load 1st value of array 1 in $f0
+li $t1,4			# set $t1 to 4 for 2nd value
+lwc1 $f1,array2($t1)		# load 2nd value of array 2 in $f1
+mul.s $f2,$f0,$f1		# multiply 1st and 2nd elements of the arrays and save them in $f2
+li $t1,4			# set $t1 to 4 for 2nd value
+lwc1 $f3,array1($t1)		# load 2nd value of array 1 in $f3
+li $t1,12			# set $t1 to 12 for 4th value
+lwc1 $f4,array2($t1)		# load 4th value of array 2 in $f4
+mul.s $f5,$f3,$f4		# multiply 2nd and 4th elements of the arrays and save them in $f5
+add.s $f6,$f2,$f5 		# add the result of both multiplications and save them in $f6
+li $t1,4			# set $t1 to 4 for 2nd value 
+swc1 $f6,result($t1)		# store the result of the final addition at 2nd location of multiplied array
+#For the 3rd location of the multiplied array
+li $t1,8			# set $t1 to 8 for 3rd value
+lwc1 $f0,array1($t1)		# load 3rd value of array 1 in $f0
+li $t1,0			# set $t1 to 0 for 1st value
+lwc1 $f1,array2($t1)		# load 1st value of array 2 in $f1
+mul.s $f2,$f0,$f1		# multiply 3rd and 1st elements of the arrays and save them in $f2
+li $t1,12			# set $t1 to 12 for 4th value
+lwc1 $f3,array1($t1)		# load 4th value of array 1 in $f3
+li $t1,8			# set $t1 to 8 for 3rd value
+lwc1 $f4,array2($t1)		# load 3rd value of array 2 in $f4
+mul.s $f5,$f3,$f4		# multiply 4th and 3rd elements of the arrays and save them in $f5
+add.s $f6,$f2,$f5 		# Add the result of both multiplications and save them in $f6
+li $t1,8			# set $t1 to 8 for 3rd value
+swc1 $f6,result($t1)		# store the result of the final addition at 3rd location of multiplied array
+#For the 4th location of the multiplied array
+li $t1,8			# set $t1 to 8 for 3rd value
+lwc1 $f0,array1($t1)		# load 3rd value of array 1 in $f0
+li $t1,4			# set $t1 to 4 for 2nd value
+lwc1 $f1,array2($t1)		# load 2nd value of array 2 in $f1
+mul.s $f2,$f0,$f1		# multiply 3rd and 2nd elements of the arrays and save them in $f2
+li $t1,12			# set $t1 to 12 for 4th value
+lwc1 $f3,array1($t1)		# load 4th value of array 1 in $f3
+lwc1 $f4,array2($t1)		# load 4th value of array 2 in $f4
+mul.s $f5,$f3,$f4		# multiply 4th elements of both arrays and save them in $f5
+add.s $f6,$f2,$f5 		# Add the result of both multiplications and save them in $f6
+li $t1,12			# set $t1 to 12 for 4th value
+swc1 $f6,result($t1)		# store the result of the final addition at 4th location of multiplied array
+j display			# jump to display the resultant array
+
+det:
+la  $a0, determinant      	# printing determinant message
+li  $v0, 4     
+syscall
+j cal_det			#jumping to cal_det 
+
+cal_inverse:
+j cal_det
+
+cal_det:
+li $t1,0			# index
+lwc1 $f0,array1($t1)		# load 1st value of array 1 in $f0 array[0,0]
+addi $t1,$t1,4			# increment
+lwc1 $f1,array1($t1)		# load 2nd value of array 1 in $f1 means array [0,1]
+addi $t1,$t1,4			# increment 
+lwc1 $f2,array1($t1)		# load 3rd value of array 1 in $f2 means array [1,0]
+addi $t1,$t1,4			# increment 
+lwc1 $f3,array1($t1)		# load 4th value of array 1 in $f3 means array [1,1]
+mul.s $f4,$f0,$f3		# product of diagonal elements in $f4
+mul.s $f5,$f1,$f2		# product of non-diagonal elements in $f5
+sub.s $f31,$f4,$f5		# determinant $f6 = product of diagonals - product of non-diagonals
+beq $t7,5,inverse_arr		# branch back to inverse case if $t7 is equal to 5
+li $v0,2			# ready to print float
+mov.s $f12,$f31			# move the value from $f6 to $f12
+syscall	
+j check
+
+invert_array:
+
+#For the 1st location of the inverted array
+li $t1,12			# set $t1 to 12 for 4th value
+lwc1 $f0,array1($t1)		# load 4th value of array 1 in $f0
+div.s $f1,$f0,$f31		# divide the 4th value of array 1 by the determinant and save it in $f1
+li $t1,0			# set $t1 to 0 for 1st value
+swc1 $f1,result($t1)		# store the result of the division at 1st location of inverted array
+#For the 2nd location of the inverted array
+li $t1,4			# set $t1 to 4 for 2nd value
+lwc1 $f0,array1($t1)		# load 2nd value of array 1 in $f0
+l.s $f1,minus			# set $f1 to -1 for use in multiplication
+mul.s $f2,$f0,$f1		# multiply the 2nd value of array 1 and -1 and save them in $f2
+div.s $f3,$f2,$f31		# divide the result of the multiplication by the determinant and save it in $f3
+swc1 $f3,result($t1)		# store the result of the division at 2nd location of inverted array
+#For the 3rd location of the inverted array
+li $t1,8			# set $t1 to 8 for 3rd value
+lwc1 $f0,array1($t1)		# load 3rd value of array 1 in $f0
+l.s  $f1,minus			# set $f1 to -1 for use in multiplication
+mul.s $f2,$f0,$f1		# multiply the 3rd value of array 1 and -1 and save them in $f2
+div.s $f3,$f2,$f31		# divide the result of the multiplication by the determinant and save it in $f3
+swc1 $f3,result($t1)		# store the result of the division at 3rd location of inverted array
+#For the 4th location of the inverted array
+li $t1,0			# set $t1 to 0 for 1st value
+lwc1 $f0,array1($t1)		# load 1st value of array 1 in $f0
+div.s $f1,$f0,$f31		# divide the 1st value of array 1 by the determinant and save it in $f1
+li $t1,12			# set $t1 to 12 for 4th value
+swc1 $f1,result($t1)		# store the result of the division at 4th location of inverted array
+j display			# jump to display the resultant array
+
+singular: 
+la $a0,not_invertible	        # printing message
+li $v0,4     
+syscall
+j check
+
+display:
+addi $t1,$zero,0		# indexing for display
+la $a0, newline			# print newline
+li $v0,4
+syscall
+
+ble $t7,3,display_result
+beq $t7,5,display_result
+j end		
+
+display_result:
+
+row1:
+beq $t1,16,check		# if index  0 become equal to 16 the max range of 2 by 2 array
+lwc1 $f13,result($t1)		# load the element from result(0) location in $f13
+li $v0,2			# ready to print float
+mov.s $f12,$f13			# move the value from $f13 to $f12
+syscall				# print the first element of added array
+la $a0,space			# after printing 1 element give \t space
+li $v0,4
+syscall
+addi $t1,$t1,4			# increment 4 bytes 
+beq $t1,8,next_row		# if 2 elements of array printed then further printing on next line so jump
+j row1
+
+next_row:
+addi $t2,$zero,8		# at next line array index start from 8 
+la $a0,newline
+li $v0,4
+syscall
+j row2
+
+row2:
+beq $t2,16,check		# if index 8 becomes equal to 16 the max range of 2 by 2 array then end
+lwc1 $f14,result($t2)		# load the element from result($t2) location in $f14
+li $v0,2
+mov.s $f12,$f14			# move the value from $f14 to $f12
+syscall				# print value at result($t2)
+la $a0,space			# give space after printing 1st element of 2nd row
+li $v0,4
+syscall
+addi $t2, $t2, 4		# increment 4 bytes in array address
+j row2
+
+check:
+la $a0,again			# ask if user want to perform more op
+li $v0,4
+syscall
+li $v0,5			#taking input
+syscall
+move $t7,$v0
+beqz $t7,end			# if 0 then end the program
+beq $t7,1,correct		# ask code of operation again
+bgt $t7,1,check			# if greater than max range ask again
+blt $t7,0,check 		# if less than min range ask again
+
+end:
+la $a0,bye			# print bye message
+li $v0,4
+syscall
+li $v0,10
+syscall
